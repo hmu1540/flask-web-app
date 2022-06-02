@@ -21,11 +21,13 @@ def create_app():
     except OSError:
         pass
 
-    from .views import views
+    # from .views import views
     from .auth import auth
-
-    app.register_blueprint(views, url_prefix='/')
+    from .post import post
+    
+    # app.register_blueprint(views, url_prefix="/")
     app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(post, url_prefix='/')
 
     from .import db
     db.init_app(app)

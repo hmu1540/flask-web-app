@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% block title %}Result{% endblock %}
+{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <h1>You have published postions everywhere!</h1>
+    </div>
+</header>
+<div>
+    {% if g.user %}
+    <a class="action" href="{{ url_for('post.create') }}">Publish new positions</a>
+    {% endif %}
+</div>
+{% endblock %}

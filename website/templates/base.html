@@ -1,34 +1,24 @@
- <!-- theme, basic page framework -->
- <!DOCTYPE html>
- <html>
-     <head>
-         <meta charset="utf-8" />
-         <meta name="viewport" content="width=device-width, initial-scale=1" />
-     <!--import CDN  -->
-    
-     <!-- {% %} any python code can be written into this and interpreted -->
-     <title>{% block title %}{% endblock %}</title>
-     <!-- {% block title %}{% endblock %} will be interpreted as a block to be override by a same structure of block in the child templates -->
-     </head>
-     <body>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar">
-                <span class="nabvar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbar">
-                <div class="navbar-nav">
-                    <a class="nav-item nav-link" id="login" href="/login">Login</a>
-                    <a class="nav-item nav-link" id="signup" href="/sign-up">Sign Up</a>
-                    <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
-                    <a class="nav-item nav-link" id="home" href="/">Home</a>
-                </div> 
-            </div>
-        </nav>
-
-     <!-- define a navbar . load a few scripts to implement, JS related bootstrap animations of buttons, put at the bottom of body tag???   -->
-     <script 
-     type ="text/javascript"
-     src = "{{ url_for('static', filename = 'index.js)}}"
-     ></script> 
-    </body>
- </html>
+<!doctype html>
+<title>{% block title %}{% endblock %} - website</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<nav>
+    <h1> website </h1>
+    <ul>
+        {% if g.user %}
+        <li><span> {{ g.user['username'] }}</span>
+        <li><a href="{{ url_for('auth.login') }}">Log out</a>
+            {% else %}
+        <li><a href="{{ url_for('auth.register')}}">Register</a>
+        <li><a href="{{ url_for('auth.login') }}">Log In</a>
+            {% endif %}
+    </ul>
+</nav>
+<section class="content">
+    <header>
+        {% block header %} {% endblock %}
+    </header>
+    {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+</section>
