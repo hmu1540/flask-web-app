@@ -74,6 +74,7 @@ def create():
                                 virtual_where = virtual_where,
                                 action_type = action_type
                                 )
+            # if the post is published, then
             return redirect(url_for('post.result'))
 
     return render_template('post/create.html')

@@ -7,10 +7,9 @@ from enum import Enum
 ## install sin shell ##
 # pip install selenium
 
-## Start the session ##
-profile = webdriver.FirefoxProfile()
-profile.set_preference("geo.enabled", False)
-driver = webdriver.Firefox(profile, executable_path=r'C:\Users\Huimin_Mu1\AppData\geckodriver.exe')
+## Start the session ## 
+
+# driver = webdriver.Firefox(profile)
 
 """ 
 Note: locator types can be ID, NAME, absolute XPATH, and relative XPATH. 
@@ -86,180 +85,53 @@ class Website:
         self.virtual_where = ""
         self.action_type = ""
 
+    def _start_session(self):
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference("geo.enabled", False)
+        self.driver = webdriver.Firefox(profile)
+        
     def _login(self):
-        driver.fullscreen_window()
-        driver.find_element(
+        self.driver.fullscreen_window()
+        self.driver.find_element(
             self.login_username_locator[0], self.login_username_locator[1]
         ).send_keys(self.username)
-        driver.find_element(
+        self.driver.find_element(
             self.login_password_locator[0], self.login_password_locator[1]
         ).send_keys(self.password)
-        driver.find_element(
+        self.driver.find_element(
             self.login_submit_locator[0], self.login_submit_locator[1]
         ).click()
         sleep(5)  # Wait until next page can load sucessfully
 
     def _open_form(self):
-        driver.find_element(
+        self.driver.find_element(
             self.form_link_locator[0], self.form_link_locator[1]
         ).click()
 
     def _enter_form(self) -> None:
         # post title #
-        driver.find_element(
+        self.driver.find_element(
             self.post_title_locator[0], self.post_title_locator[1]
         ).send_keys(self.title)
 
     def _save_form(self):
-        driver.find_element(
+        self.driver.find_element(
             self.form_submit_locator[0], self.form_submit_locator[1]
         ).click()
         sleep(5)  # Wait until next page can load sucessfully
 
-    def publish(self):
+    def _publish(self):
+        
         self._login()
         self._open_form()
         self._enter_form()
         self._save_form()
 
-class GivePulse(Website):
-    def __init__(self):
-        # GivePulse specific extra element locators and values: hard-coded, no worries of changing across time (presumebly)
-        self.group_parent_group_locator = (By.ID, "Group_parent_group_id")
-        self.group_submit_locator = (
-            By.XPATH,
-            "/html/body/div[1]/div[4]/div[2]/div/div[3]/div/div/div/div/div[2]/form/div[3]/div/div[2]/button",
-        )
-        self.unpublish_submit_locator = (
-            By.XPATH,
-            "/html/body/div[1]/div[4]/div[2]/div/div[4]/div[1]/div[2]/ul[5]/li[1]/a",
-        )
-        self.publish_submit_locator = (By.ID, "savePublish")
+    def _close_session(self):
+        sleep(15) # wait until the post can be succefully published
+        self.driver.quit() # close session
 
-        # GivePulse concrete locator values
-        super().__init__(
-            URL="https://www.givepulse.com/login",
-            login_username_locator=(By.NAME, "LoginForm[email]"),
-            login_password_locator=(By.NAME, "LoginForm[password]"),
-            login_submit_locator=(By.NAME, "yt0"),
-            form_link_locator=(By.LINK_TEXT, "List Event"),
-            post_title_locator=(By.NAME, "Event[title]"),
-            post_evenkind_locator=(By.NAME, "Event[kind_of_event]"),
-            post_eventtype_locator=(By.NAME, "Event[event_type]"),
-            post_description_frame_locator=(By.ID, "Event_description_ifr"),
-            post_description_locator=(By.ID, "tinymce"),
-            post_event_start_date_select_locator=(By.ID, "Event_start_date_select"),
-            post_event_start_hour_locator=(By.ID, "Event_start_hour"),
-            post_event_start_min_locator=(By.ID, "Event_start_min"),
-            post_event_start_ampm_locator=(By.ID, "Event_start_ampm"),
-            post_event_end_date_select_locator=(By.ID, "Event_end_date_select"),
-            post_event_end_hour_locator=(By.ID, "Event_end_hour"),
-            post_event_end_min_locator=(By.ID, "Event_end_min"),
-            post_event_end_ampm_locator=(By.ID, "Event_end_ampm"),
-            form_submit_locator=(By.NAME, "yt0"),
-        )
-
-    def _login(self):
-        # action on browser
-        driver.get(self.website)
-        # remaining steps are inherited from the parent website
-        super()._login()
-
-    def _enter_form(self):
-        # some steps are inherited from the parent class
-        super()._enter_form()
-        # post descrpition #
-        driver.switch_to.frame(
-            driver.find_element(
-                self.post_description_frame_locator[0],
-                self.post_description_frame_locator[1],
-            )
-        )
-        driver.find_element(
-            self.post_description_locator[0], self.post_description_locator[1]
-        ).send_keys(self.description)
-        driver.switch_to.default_content()
-
-        # type #
-        Select(
-            driver.find_element(
-                self.post_evenkind_locator[0], self.post_evenkind_locator[1]
-            )
-        ).select_by_value(self.event_kind)
-        Select(
-            driver.find_element(
-                self.post_eventtype_locator[0], self.post_eventtype_locator[1]
-            )
-        ).select_by_value(self.event_type)
-
-        # when #
-        driver.find_element(
-            self.post_event_start_date_select_locator[0],
-            self.post_event_start_date_select_locator[1],
-        ).clear()
-        driver.find_element(
-            self.post_event_start_date_select_locator[0],
-            self.post_event_start_date_select_locator[1],
-        ).send_keys(self.start_date)
-        Select(
-            driver.find_element(
-                self.post_event_start_hour_locator[0],
-                self.post_event_start_hour_locator[1],
-            )
-        ).select_by_value(self.start_hour)
-        Select(
-            driver.find_element(
-                self.post_event_start_min_locator[0],
-                self.post_event_start_min_locator[1],
-            )
-        ).select_by_value(self.start_min)
-        Select(
-            driver.find_element(
-                self.post_event_start_ampm_locator[0],
-                self.post_event_start_ampm_locator[1],
-            )
-        ).select_by_value(self.start_ampm)
-
-        driver.find_element(
-            self.post_event_end_date_select_locator[0],
-            self.post_event_end_date_select_locator[1],
-        ).clear()
-        driver.find_element(
-            self.post_event_end_date_select_locator[0],
-            self.post_event_end_date_select_locator[1],
-        ).send_keys(self.end_date)
-        Select(
-            driver.find_element(
-                self.post_event_end_hour_locator[0], self.post_event_end_hour_locator[1]
-            )
-        ).select_by_value(self.end_hour)
-        Select(
-            driver.find_element(
-                self.post_event_end_min_locator[0], self.post_event_end_min_locator[1]
-            )
-        ).select_by_value(self.end_min)
-        Select(
-            driver.find_element(
-                self.post_event_end_ampm_locator[0], self.post_event_end_ampm_locator[1]
-            )
-        ).select_by_value(self.end_ampm)
-
-    def _select_group(self):
-        # select Asha Hope Amanaki group #
-        Select(
-            driver.find_element(
-                self.group_parent_group_locator[0], self.group_parent_group_locator[1]
-            )
-        ).select_by_value("493396")
-        driver.find_element(
-            self.group_submit_locator[0], self.group_submit_locator[1]
-        ).click()
-        sleep(
-            5
-        )  # wait until group info can load successfully and the driver can see submit button.
-
-    def publish(
-        self,
+    def publish(self, 
         username="",
         password="",
         title="",
@@ -305,19 +177,161 @@ class GivePulse(Website):
         self.virtual_where = virtual_where
         self.action_type = action_type
 
-        super().publish()
+        self._start_session()
+        self._publish()
+        self._close_session()
+
+class GivePulse(Website):
+    def __init__(self):
+        # GivePulse specific extra element locators and values: hard-coded, no worries of changing across time (presumebly)
+        self.group_parent_group_locator = (By.ID, "Group_parent_group_id")
+        self.group_submit_locator = (
+            By.XPATH,
+            "/html/body/div[1]/div[4]/div[2]/div/div[3]/div/div/div/div/div[2]/form/div[3]/div/div[2]/button",
+        )
+        self.unpublish_submit_locator = (
+            By.XPATH,
+            "/html/body/div[1]/div[4]/div[2]/div/div[4]/div[1]/div[2]/ul[5]/li[1]/a",
+        )
+        self.publish_submit_locator = (By.ID, "savePublish")
+
+        # GivePulse concrete locator values
+        super().__init__(
+            URL="https://www.givepulse.com/login",
+            login_username_locator=(By.NAME, "LoginForm[email]"),
+            login_password_locator=(By.NAME, "LoginForm[password]"),
+            login_submit_locator=(By.NAME, "yt0"),
+            form_link_locator=(By.LINK_TEXT, "List Event"),
+            post_title_locator=(By.NAME, "Event[title]"),
+            post_evenkind_locator=(By.NAME, "Event[kind_of_event]"),
+            post_eventtype_locator=(By.NAME, "Event[event_type]"),
+            post_description_frame_locator=(By.ID, "Event_description_ifr"),
+            post_description_locator=(By.ID, "tinymce"),
+            post_event_start_date_select_locator=(By.ID, "Event_start_date_select"),
+            post_event_start_hour_locator=(By.ID, "Event_start_hour"),
+            post_event_start_min_locator=(By.ID, "Event_start_min"),
+            post_event_start_ampm_locator=(By.ID, "Event_start_ampm"),
+            post_event_end_date_select_locator=(By.ID, "Event_end_date_select"),
+            post_event_end_hour_locator=(By.ID, "Event_end_hour"),
+            post_event_end_min_locator=(By.ID, "Event_end_min"),
+            post_event_end_ampm_locator=(By.ID, "Event_end_ampm"),
+            form_submit_locator=(By.NAME, "yt0"),
+        )
+
+    def _login(self):
+        # action on browser
+        self.driver.get(self.website)
+        # remaining steps are inherited from the parent website
+        super()._login()
+
+    def _enter_form(self):
+        # some steps are inherited from the parent class
+        super()._enter_form()
+        # post descrpition #
+        self.driver.switch_to.frame(
+            self.driver.find_element(
+                self.post_description_frame_locator[0],
+                self.post_description_frame_locator[1],
+            )
+        )
+        self.driver.find_element(
+            self.post_description_locator[0], self.post_description_locator[1]
+        ).send_keys(self.description)
+        self.driver.switch_to.default_content()
+
+        # type #
+        Select(
+            self.driver.find_element(
+                self.post_evenkind_locator[0], self.post_evenkind_locator[1]
+            )
+        ).select_by_value(self.event_kind)
+        Select(
+            self.driver.find_element(
+                self.post_eventtype_locator[0], self.post_eventtype_locator[1]
+            )
+        ).select_by_value(self.event_type)
+
+        # when #
+        self.driver.find_element(
+            self.post_event_start_date_select_locator[0],
+            self.post_event_start_date_select_locator[1],
+        ).clear()
+        self.driver.find_element(
+            self.post_event_start_date_select_locator[0],
+            self.post_event_start_date_select_locator[1],
+        ).send_keys(self.start_date)
+        Select(
+            self.driver.find_element(
+                self.post_event_start_hour_locator[0],
+                self.post_event_start_hour_locator[1],
+            )
+        ).select_by_value(self.start_hour)
+        Select(
+            self.driver.find_element(
+                self.post_event_start_min_locator[0],
+                self.post_event_start_min_locator[1],
+            )
+        ).select_by_value(self.start_min)
+        Select(
+            self.driver.find_element(
+                self.post_event_start_ampm_locator[0],
+                self.post_event_start_ampm_locator[1],
+            )
+        ).select_by_value(self.start_ampm)
+
+        self.driver.find_element(
+            self.post_event_end_date_select_locator[0],
+            self.post_event_end_date_select_locator[1],
+        ).clear()
+        self.driver.find_element(
+            self.post_event_end_date_select_locator[0],
+            self.post_event_end_date_select_locator[1],
+        ).send_keys(self.end_date)
+        Select(
+            self.driver.find_element(
+                self.post_event_end_hour_locator[0], self.post_event_end_hour_locator[1]
+            )
+        ).select_by_value(self.end_hour)
+        Select(
+            self.driver.find_element(
+                self.post_event_end_min_locator[0], self.post_event_end_min_locator[1]
+            )
+        ).select_by_value(self.end_min)
+        Select(
+            self.driver.find_element(
+                self.post_event_end_ampm_locator[0], self.post_event_end_ampm_locator[1]
+            )
+        ).select_by_value(self.end_ampm)
+
+    def _select_group(self):
+        # select Asha Hope Amanaki group #
+        Select(
+            self.driver.find_element(
+                self.group_parent_group_locator[0], self.group_parent_group_locator[1]
+            )
+        ).select_by_value("493396")
+        self.driver.find_element(
+            self.group_submit_locator[0], self.group_submit_locator[1]
+        ).click()
+        sleep(
+            5
+        )  # wait until group info can load successfully and the driver can see submit button.
+
+    def _publish(self):
+
+        super()._publish()
         self._select_group()
-        driver.find_element(
+        self.driver.find_element(
             self.publish_submit_locator[0], self.publish_submit_locator[1]
         ).click()
         sleep(5)  # wait until the next page load successfully
-        driver.find_element(
+        self.driver.find_element(
             By.XPATH,
             "/html/body/div[1]/div[4]/div[2]/div/div[4]/div[1]/div[2]/ul[2]/li[3]/a",
         ).click()
 
     def unpublish(self):
-        driver.find_element(
+        self.driver.find_element(
             self.unpublish_submit_locator[0], self.unpublish_submit_locator[1]
         ).click()
 
@@ -353,12 +367,12 @@ class VolunteerMatch(Website):
         )
 
     def _login(self):
-        driver.get(self.website)
-        main_page = driver.current_window_handle
-        driver.find_element(
+        self.driver.get(self.website)
+        main_page = self.driver.current_window_handle
+        self.driver.find_element(
             self.login_link_locator[0], self.login_link_locator[1]
         ).click()  # open a popup login window
-        driver.switch_to.window(
+        self.driver.switch_to.window(
             main_page
         )  # switch to the main page to find login elements
         sleep(5) # wait until the main page can load
@@ -367,97 +381,54 @@ class VolunteerMatch(Website):
     def _enter_form(self):
         super()._enter_form()
         # descrpition #
-        driver.switch_to.frame(
-            driver.find_element(
+        self.driver.switch_to.frame(
+            self.driver.find_element(
                 self.post_description_frame_locator[0],
                 self.post_description_frame_locator[1],
             )
         )
-        driver.find_element(
+        self.driver.find_element(
             self.post_description_locator[0], self.post_description_locator[1]
         ).send_keys(self.description)
-        driver.switch_to.default_content()
+        self.driver.switch_to.default_content()
 
         # contact: ashahopeamanaki@gmail.com #
         Select(
-            driver.find_element(self.contact_locator[0], self.contact_locator[1])
+            self.driver.find_element(self.contact_locator[0], self.contact_locator[1])
         ).select_by_value("26884010")
 
         # virtural/remore #
-        driver.find_element(self.virtrual_locator[0], self.virtrual_locator[1]).click()
+        self.driver.find_element(self.virtrual_locator[0], self.virtrual_locator[1]).click()
 
         # when #
-        driver.execute_script(f'$("input#start_date").val("{self.start_date}")')
-        driver.execute_script(f'$("input#end_date").val("{self.end_date}")')
+        self.driver.execute_script(f'$("input#start_date").val("{self.start_date}")')
+        self.driver.execute_script(f'$("input#end_date").val("{self.end_date}")')
 
         # paticipants needed #
-        driver.find_element(
+        self.driver.find_element(
             self.estVolunteer_locator[0], self.estVolunteer_locator[1]
         ).send_keys("1")
 
         # covid #
-        driver.find_element(self.notcovid_locator[0], self.notcovid_locator[1]).click()
+        self.driver.find_element(self.notcovid_locator[0], self.notcovid_locator[1]).click()
 
         # causes #
-        driver.find_element(self.cause_locator[0], self.cause_locator[1]).click()
+        self.driver.find_element(self.cause_locator[0], self.cause_locator[1]).click()
 
-    def publish(
-        self,
-        username="",
-        password="",
-        title="",
-        event_kind="",
-        event_type="",
-        description="",
-        start_date="",
-        start_hour="",
-        start_min="",
-        start_ampm="",
-        end_date="",
-        end_hour="",
-        end_min="",
-        end_ampm="",
-        recurrence="",
-        time_commitment="",
-        schedule="",
-        timezone="",
-        virtual="",
-        virtual_where="",
-        action_type="",
-    ):
-        self.username = username
-        self.password = password
-        self.title = title
-        self.event_kind = event_kind
-        self.event_type = event_type
-        self.description = description
-        self.start_date = start_date
-        self.start_hour = start_hour
-        self.start_min = start_min
-        self.start_ampm = start_ampm
-        self.end_date = end_date
-        self.end_hour = end_hour
-        self.end_min = end_min
-        self.end_ampm = end_ampm
-        self.recurrence = recurrence
-        self.time_commitment = time_commitment
-        self.schedule = schedule
-        self.timezone = timezone
-        self.virtual = virtual
-        self.virtual_where = virtual_where
-        self.action_type = action_type
-        super().publish()
-        driver.find_element(
+    def _publish(self):
+        
+        super()._publish()
+        self.driver.find_element(
             By.XPATH,
             "/html/body/div[4]/div[2]/main/div[1]/div/div/div[3]/div[1]/div/div[2]/div[1]/div[1]/ul[2]/li[2]/a",
         ).click()
-        current_page = driver.current_window_handle
-        all_pages = driver.window_handles
+        current_page = self.driver.current_window_handle
+        all_pages = self.driver.window_handles
         for i in all_pages:
             if i != current_page:
-                driver.switch_to.window(i)
+                self.driver.switch_to.window(i)
                 # enlarge the post page
-                driver.maximize_window()
+                self.driver.maximize_window()
 
 class Idealist(Website):
     def __init__(self):
@@ -555,20 +526,20 @@ class Idealist(Website):
         )
 
     def _login(self):
-        driver.get(self.website)
+        self.driver.get(self.website)
         super()._login()
 
     def _open_form(self):
         super()._open_form()
-        driver.find_element(
+        self.driver.find_element(
             self.form_link_locator_next[0], self.form_link_locator_next[1]
         ).click()
         sleep(5)  # wait until the next page can load successfully
-        driver.find_element(
+        self.driver.find_element(
             self.volunteer_event_locator[0], self.volunteer_event_locator[1]
         ).click()
         sleep(5)  # wait until the next page can load successfully
-        driver.find_element(
+        self.driver.find_element(
             self.applicant_tracker_locator[0], self.applicant_tracker_locator[1]
         ).click()
         sleep(5)  # wait until the next page can load successfully
@@ -576,96 +547,96 @@ class Idealist(Website):
     def _enter_form(self):
         super()._enter_form()
         Select(
-            driver.find_element(
+            self.driverr.find_element(
                 self.action_type_locator[0], self.action_type_locator[1]
             )
         ).select_by_value(self.action_type)
-        driver.find_element(
+        self.driver.find_element(
             self.post_description_locator[0], self.post_description_locator[1]
         ).send_keys(self.description)
-        driver.find_element(
+        self.driver.find_element(
             self.next_page_locator[0], self.next_page_locator[1]
         ).click()
         sleep(2)  # wait until the next page can load successfully
 
         # recurrence and time commmitment #
         if self.recurrence == Recurrence.ONE_TIME.value:
-            button = driver.find_element(
+            button = self.driver.find_element(
                 self.one_time_locator[0], self.one_time_locator[1]
             )
-            driver.execute_script(
+            self.driver.execute_script(
                 "arguments[0].click();", button
             )  # radio button clicks
             sleep(2)  # wait until time commitment options show
             if self.time_commitment == TimeCommitmentOneTime.FEW_HOURS.value:
-                driver.find_element(
+                self.driver.find_element(
                     self.hours_locator[0], self.hours_locator[1]
                 ).click()
             elif self.time_commitment == TimeCommitmentOneTime.FEW_MINUTES.value:
-                driver.find_element(
+                self.driver.find_element(
                     self.minutes_loctor[0], self.minutes_loctor[1]
                 ).click()
             elif self.time_commitment == TimeCommitmentOneTime.FEW_DAYS.value:
-                driver.find_element(self.days_locator[0], self.days_locator[1]).click()
+                self.driver.find_element(self.days_locator[0], self.days_locator[1]).click()
         elif self.recurrence == Recurrence.LONG_TERM.value:
-            button = driver.find_element(
+            button = self.driver.find_element(
                 self.long_term_locator[0], self.long_term_locator[1]
             )
-            driver.execute_script("arguments[0].click();", button)
+            self.driver.execute_script("arguments[0].click();", button)
             sleep(2)  # wait until time commitment options show
             if self.time_commitment == TimeCommitmentLongTerm.FEW_HOURS_WEEK.value:
-                driver.find_element(
+                self.driver.find_element(
                     self.hours_week_locator[0], self.hours_week_locator[1]
                 ).click()
             elif self.time_commitment == TimeCommitmentLongTerm.FEW_HOURS_MONTH.value:
-                driver.find_element(
+                self.driver.find_element(
                     self.hours_month_loctor[0], self.hours_month_loctor[1]
                 ).click()
             elif self.time_commitment == TimeCommitmentLongTerm.PART_TIME.value:
-                driver.find_element(
+                self.driver.find_element(
                     self.parttime_locator[0], self.parttime_locator[1]
                 ).click()
             elif self.time_commitment == TimeCommitmentLongTerm.FULL_TIME.value:
-                driver.find_element(
+                self.driver.find_element(
                     self.fulltime_locator[0], self.fulltime_locator[1]
                 ).click()
 
         # schedule #
         if self.schedule == Schedule.WEEKDAYS:
-            driver.find_element(
+            self.driver.find_element(
                 self.weekday_schedule_locator[0], self.weekday_schedule_locator[1]
             ).click()
         elif self.schedule == Schedule.WEEKENDS:
-            driver.find_element(
+            self.driver.find_element(
                 self.weekend_schedule_locator[0], self.weekend_schedule_locator[1]
             ).click()
         sleep(5) # wait until the next page can load successfully
 
         # date #
-        driver.find_element(self.add_date_locator[0], self.add_date_locator[1]).click()
+        self.driver.find_element(self.add_date_locator[0], self.add_date_locator[1]).click()
         sleep(3)  # wait until date frame can load completely
-        driver.find_element(
+        self.driver.find_element(
             self.post_event_start_date_select_locator[0],
             self.post_event_start_date_select_locator[1],
         ).send_keys(self.start_date)
-        driver.find_element(
+        self.driver.find_element(
             self.post_event_end_date_select_locator[0],
             self.post_event_end_date_select_locator[1],
         ).send_keys(self.end_date)
 
         # next page #
-        driver.find_element(
+        self.driver.find_element(
             self.next_page_locator_2[0], self.next_page_locator_2[1]
         ).click()
         sleep(2)  # wait until the next page can load sucessfully
 
         # virtual #
         if self.virtual:
-            driver.find_element(self.remote_locator[0], self.remote_locator[1]).click()
+            self.driver.find_element(self.remote_locator[0], self.remote_locator[1]).click()
 
         # where #
         Select(
-            driver.find_element(
+            self.driver.find_element(
                 self.remote_where_locator[0], self.remote_where_locator[1]
             )
         ).select_by_value(
@@ -673,68 +644,24 @@ class Idealist(Website):
         )  # whthin the U.S.
 
         # remote but listing related to waht address #
-        driver.find_element(
+        self.driver.find_element(
             self.listing_address_locator[0], self.listing_address_locator[1]
         ).click()
 
-        driver.find_element(
+        self.driver.find_element(
             self.next_page_locator_3[0], self.next_page_locator_3[1]
         ).click()
         sleep(2)  # wait until the next page can load sucessfully
 
         # compliance statement#
-        driver.find_element(
+        self.driver.find_element(
             self.compliance_locator[0], self.compliance_locator[1]
         ).click()
 
-    def publish(
-        self,
-        username="",
-        password="",
-        title="",
-        event_kind="",
-        event_type="",
-        description="",
-        start_date="",
-        start_hour="",
-        start_min="",
-        start_ampm="",
-        end_date="",
-        end_hour="",
-        end_min="",
-        end_ampm="",
-        recurrence="",
-        time_commitment="",
-        schedule="",
-        timezone="",
-        virtual="",
-        virtual_where="",
-        action_type="",
-    ):
-        self.username = username
-        self.password = password
-        self.title = title
-        self.event_kind = event_kind
-        self.event_type = event_type
-        self.description = description
-        self.start_date = start_date
-        self.start_hour = start_hour
-        self.start_min = start_min
-        self.start_ampm = start_ampm
-        self.end_date = end_date
-        self.end_hour = end_hour
-        self.end_min = end_min
-        self.end_ampm = end_ampm
-        self.recurrence = recurrence
-        self.time_commitment = time_commitment
-        self.schedule = schedule
-        self.timezone = timezone
-        self.virtual = virtual
-        self.virtual_where = virtual_where
-        self.action_type = action_type
-        super().publish()
+    def _publish(self):
+        super()._publish()
         sleep(5) # wait until next page can load successfully
-        driver.find_element(By.XPATH, '//*[@id="idealist-modal-container"]').click()
+        self.driver.find_element(By.XPATH, '//*[@id="idealist-modal-container"]').click()
 
 class TimeCommitmentOneTime(Enum):
     FEW_HOURS = 0
