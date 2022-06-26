@@ -5,11 +5,40 @@
 {% endblock %}
 
 {% block content %}
+
 <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Register">
+  <!-- Email input -->
+  <div class="form-outline mb-4">
+    <input type="email" id="form2Example1" class="form-control" name="username" />
+    <label class="form-label" for="form2Example1">Email address</label>
+  </div>
+
+  <!-- Password input -->
+  <div class="form-outline mb-4">
+    <input type="password" id="form2Example2" class="form-control" name="password" />
+    <label class="form-label" for="form2Example2">Password</label>
+  </div>
+
+  <!-- Password input again -->
+  <div class="form-outline mb-4">
+    <input type="password" id="form2Example3" class="form-control" name="password" />
+    <label class="form-label" for="form2Example3">Repeat Password</label>
+  </div>
+
+  <!-- Checkbox no items yet as of 6/21 -->
+  <div class="form-check d-flex justify-content-left mb-4">
+    <input class="form-check-input me-2" type="checkbox" value="" id="registerCheck" checked
+      aria-describedby="registerCheckHelpText" />
+    <label class="form-check-label" for="registerCheck">
+      I have read and agree to the terms
+    </label>
+  </div>
+
+  <!-- Submit button -->
+  <!-- <input type="submit" class="btn btn-lg btn-primary" value="register" role="button"> -->
+  <input type="submit" class="btn btn-primary btn-block mb-4" value="register">
 </form>
+{% for mesg in get_flashed_messages() %}
+<h1>{{ mesg }}</h1>
+{% endfor %}
 {% endblock %}

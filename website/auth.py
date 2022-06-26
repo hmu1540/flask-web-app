@@ -1,9 +1,15 @@
 import functools
+from time import sleep
 from flask import Blueprint, flash, render_template, request, url_for, redirect, session, g
 from website.db import get_db
 from werkzeug.security import check_password_hash, generate_password_hash
+import time
 
 auth = Blueprint('auth', __name__, url_prefix= '/auth')
+
+@auth.route('/')
+def index():
+    return render_template('auth/index.html')
 
 @auth.route('/register', methods = ('GET', 'POST'))
 def register():
@@ -48,13 +54,15 @@ def login():
             error = 'Incorrect username.'
         elif not check_password_hash(user['password'], password):
             error = 'Incorrect password.'
+        
+
         if error is None:
             session.clear()
             session['user_id'] = user['id']
-            return redirect(url_for('post.create'))
-        
+            flash('You were successfully logged in')
+            return redirect(url_for('post.welcome'))
         flash(error)
-
+        
     return render_template('auth/login.html')
 
 @auth.before_app_request
@@ -71,8 +79,7 @@ def load_logged_in_user():
 @auth.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('auth.login'))
-
+    return redirect(url_for('auth.index'))
 
 def login_required(view):
     @functools.wraps(view)

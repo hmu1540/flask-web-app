@@ -1,6 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium. webdriver. common. keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from enum import Enum
 
@@ -84,6 +87,7 @@ class Website:
         self.virtual = ""
         self.virtual_where = ""
         self.action_type = ""
+        self.participants = ""
 
     def _start_session(self):
         profile = webdriver.FirefoxProfile()
@@ -101,7 +105,7 @@ class Website:
         self.driver.find_element(
             self.login_submit_locator[0], self.login_submit_locator[1]
         ).click()
-        sleep(5)  # Wait until next page can load sucessfully
+        sleep(15)  # Wait until next page can load sucessfully
 
     def _open_form(self):
         self.driver.find_element(
@@ -153,6 +157,10 @@ class Website:
         virtual="",
         virtual_where="",
         action_type="",
+        participants="",
+        city="",
+        state="",
+        zip="",
     ):
         # get attribute/field arguments for params
         self.username = username
@@ -176,6 +184,10 @@ class Website:
         self.virtual = virtual
         self.virtual_where = virtual_where
         self.action_type = action_type
+        self.participants = participants
+        self.city = city
+        self.state = state
+        self.zip = zip
 
         self._start_session()
         self._publish()
@@ -194,6 +206,12 @@ class GivePulse(Website):
             "/html/body/div[1]/div[4]/div[2]/div/div[4]/div[1]/div[2]/ul[5]/li[1]/a",
         )
         self.publish_submit_locator = (By.ID, "savePublish")
+        self.virtual_locator = (By.ID, "Event_no_address")
+        self.participants_locator = (By.ID, "Event_num_registrants_needed")
+        self.post_timezone_locator = (By.ID, "Event_datetime_zone")
+        self.city_locator = (By.ID, "Event_city")
+        self.state_locator = (By.ID, "Event_state")
+        self.zip_locator = (By.ID, "Event_zip")
 
         # GivePulse concrete locator values
         super().__init__(
@@ -227,6 +245,18 @@ class GivePulse(Website):
     def _enter_form(self):
         # some steps are inherited from the parent class
         super()._enter_form()
+
+        # virtual 
+        if self.virtual == "1": self.virtual = self.virtual # The values in fask app is differnt from the ones in the targeted apps
+        elif self.virtual == "2": self.virtual = "0"
+        elif self.virtual == "3": self.virtual = "2"
+        Select(
+            self.driver.find_element(
+                self.virtual_locator[0], self.virtual_locator[1]
+            )
+        ).select_by_value(self.virtual)
+        sleep(5)
+
         # post descrpition #
         self.driver.switch_to.frame(
             self.driver.find_element(
@@ -240,16 +270,28 @@ class GivePulse(Website):
         self.driver.switch_to.default_content()
 
         # type #
-        Select(
-            self.driver.find_element(
-                self.post_evenkind_locator[0], self.post_evenkind_locator[1]
-            )
-        ).select_by_value(self.event_kind)
-        Select(
-            self.driver.find_element(
-                self.post_eventtype_locator[0], self.post_eventtype_locator[1]
-            )
-        ).select_by_value(self.event_type)
+        if self.event_kind == "1": 
+            self.event_kind = "volunteer"
+            Select(
+                self.driver.find_element(
+                    self.post_evenkind_locator[0], self.post_evenkind_locator[1]
+                )
+            ).select_by_value(self.event_kind)
+
+        # kind
+        if self.event_type == "1": self.event_type = "event"
+        elif self.event_type == '2': self.event_type = "multiday"
+        elif self.event_type == "3": self.event_type = "recurring"
+        elif self.event_type == "4": self.event_type = "random"
+        else: self.event_type = "nodate"
+
+        if self.event_type == "multiday":
+            Select(
+                self.driver.find_element(
+                    self.post_eventtype_locator[0], self.post_eventtype_locator[1]
+                )
+            ).select_by_value(self.event_type)
+        # other cases?
 
         # when #
         self.driver.find_element(
@@ -303,6 +345,30 @@ class GivePulse(Website):
             )
         ).select_by_value(self.end_ampm)
 
+        # timezone
+        Select(
+            self.driver.find_element(
+                self.post_timezone_locator[0], self.post_timezone_locator[1]
+            )
+        ).select_by_value(self.timezone)
+
+        # participants #
+        self.driver.find_element(
+            self.participants_locator[0], self.participants_locator[1]
+        ).clear()
+        self.driver.find_element(
+            self.participants_locator[0], self.participants_locator[1]
+        ).send_keys(self.participants)
+
+        # geo #
+        if self.virtual == "0":
+            # city
+            self.driver.find_element(self.city_locator[0], self.city_locator[1]).send_keys(self.city)
+            # state
+            self.driver.find_element(self.state_locator[0], self.state_locator[1]).send_keys(self.state)
+            # zip
+            self.driver.find_element(self.zip_locator[0], self.zip_locator[1]).send_keys(self.zip)
+
     def _select_group(self):
         # select Asha Hope Amanaki group #
         Select(
@@ -324,15 +390,11 @@ class GivePulse(Website):
         self.driver.find_element(
             self.publish_submit_locator[0], self.publish_submit_locator[1]
         ).click()
-        sleep(5)  # wait until the next page load successfully
+        sleep(10)  # wait until the next page load successfully
         self.driver.find_element(
             By.XPATH,
             "/html/body/div[1]/div[4]/div[2]/div/div[4]/div[1]/div[2]/ul[2]/li[3]/a",
-        ).click()
-
-    def unpublish(self):
-        self.driver.find_element(
-            self.unpublish_submit_locator[0], self.unpublish_submit_locator[1]
+            
         ).click()
 
 class VolunteerMatch(Website):
@@ -341,6 +403,7 @@ class VolunteerMatch(Website):
         self.login_link_locator = (By.ID, "global_login_link")
         self.contact_locator = (By.ID, "contact")
         self.virtrual_locator = (By.ID, "virtual_only")
+        self.oneplace_locator = (By.ID, "one_location")
         self.startdate_script = '$("input#start_date").'
         self.enddate_script = '$("input#end_date").'
         self.estVolunteer_locator = (By.ID, "estVolunteers")
@@ -349,6 +412,10 @@ class VolunteerMatch(Website):
             By.XPATH,
             "/html/body/div[3]/div[2]/main/div/div[3]/div[1]/div/div/form/div[15]/div/div[1]/div/div[3]/div[2]/ul/li/ul/li[6]/a/span",
         )
+        self.city_locator = (By.ID, "city")
+        self.state_locator = (By.ID, "state")
+        self.zip_locator = (By.ID, "zip_code")
+        self.addr_locator = (By.ID, "street1")
 
         # VolunteerMatch concrete locator values
         super().__init__(
@@ -398,7 +465,28 @@ class VolunteerMatch(Website):
         ).select_by_value("26884010")
 
         # virtural/remore #
-        self.driver.find_element(self.virtrual_locator[0], self.virtrual_locator[1]).click()
+        if self.virtual == "1":
+            self.driver.find_element(self.virtrual_locator[0], self.virtrual_locator[1]).click()
+        elif self.virtual == "2":
+            self.driver.find_element(self.oneplace_locator[0], self.oneplace_locator[1]).click()
+
+        # where if not virtual #
+        if self.virtual == "2":
+            # address
+            self.driver.find_element(self.addr_locator[0], self.addr_locator[1]).send_keys(self.city + ', ' + self.state + ', ' + 'USA')
+
+            self.driver.find_element(self.addr_locator[0], self.addr_locator[1]).send_keys(Keys.TAB)
+
+            self.driver.find_element(By.XPATH, "//body").click()
+
+            # city
+            self.driver.find_element(self.city_locator[0], self.city_locator[1]).send_keys(self.city)
+
+            # state
+            Select(self.driver.find_element(self.state_locator[0], self.state_locator[1])).select_by_value(self.state)
+            
+            # zip
+            self.driver.find_element(self.zip_locator[0], self.zip_locator[1]).send_keys(self.zip)
 
         # when #
         self.driver.execute_script(f'$("input#start_date").val("{self.start_date}")')
@@ -407,7 +495,7 @@ class VolunteerMatch(Website):
         # paticipants needed #
         self.driver.find_element(
             self.estVolunteer_locator[0], self.estVolunteer_locator[1]
-        ).send_keys("1")
+        ).send_keys(self.participants)
 
         # covid #
         self.driver.find_element(self.notcovid_locator[0], self.notcovid_locator[1]).click()
@@ -433,17 +521,19 @@ class VolunteerMatch(Website):
 class Idealist(Website):
     def __init__(self):
         # Idealist specific extra element locators and values: hard-coded, no worries of changing across time (presumebly)
-        self.form_link_locator_next = (
-            By.XPATH,
-            "/html/body/div[1]/div/div[1]/div[2]/div/span/div/div/div[3]/div[2]/div[2]/div[5]/div/div[2]/div/div/div/div/a[2]",
-        )
+        # self.form_link_locator_next = (
+        #     By.XPATH,
+        #     # "/html/body/div[1]/div/div[1]/div[2]/div/span/div/div/div[3]/div[2]/div[2]/div[5]/div/div[2]/div/div/div/div/a[2]",
+        #     "/html/body/div[1]/div/div[1]/div[2]/div/div[3]/div/div/div[2]/button[3]"
+        # ) no longer valid
         self.volunteer_event_locator = (
             By.XPATH,
             "/html/body/div[1]/div/div[1]/div[2]/div/div[3]/div/div/div[2]/button[3]",
         )
         self.applicant_tracker_locator = (
             By.XPATH,
-            "/html/body/div[1]/div/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div/div[2]/button[1]",
+            # "/html/body/div[1]/div/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div/div[2]/button[1]",
+            "/html/body/div[1]/div/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div/div[2]/button[1]/div[1]"
         )
         self.action_type_locator = (By.ID, "create-volop-form-action-type")
         self.next_page_locator = (
@@ -482,6 +572,8 @@ class Idealist(Website):
             By.ID,
             "create-volop-form-remote-options-location-type-REMOTE",
         )
+        self.onsite_locator = (By.ID, "create-volop-form-remote-options-location-type")
+        self.tempRemote_loactor = (By.ID, "create-volop-form-remote-options-location-type-REMOTE_TEMPORARY_COVID")
         self.remote_where_locator = (
             By.ID,
             "create-volop-form-remote-options-remote-zone",
@@ -495,6 +587,11 @@ class Idealist(Website):
             "/html/body/div[1]/div/div[1]/div[2]/div/form/div[2]/div/div/div/div/div[2]/div/div/div/div/div[3]/div[2]/button/div/div[1]",
         )
         self.compliance_locator = (By.ID, "create-volop-form-in-accordance")
+        # self.show_locator = (By.XPATH, "/html/body/div[1]/div/div[1]/div[2]/div/form/div[2]/div/div/div/div/div[2]/div/div/div/div/div[1]/div/div/div[2]/div/div[4]/div[1]/button/div")
+        self.city_locator = (By.XPATH, "/html/body/div[1]/div/div[1]/div[2]/div/form/div[2]/div/div/div/div/div[2]/div/div/div/div/div[1]/div/div/div[2]/div/div[4]/div[2]/div/div/div/div[1]/input")
+        # self.state_locator = (By.ID, "create-volop-form-address-state")
+        # self.zip_locator = (By.ID, "create-volop-form-address-zipcode")
+        # self.addr_locator = (By.ID, "create-volop-form-address-line1")
 
         # Idealist concrete locator values
         super().__init__(
@@ -507,7 +604,8 @@ class Idealist(Website):
             ),
             form_link_locator=(
                 By.XPATH,
-                "/html/body/div[1]/div/div[1]/div[2]/div/span/div/div/div[3]/div[2]/div[2]/div[5]/div/div[2]/div/a/div[1]",
+                # "/html/body/div[1]/div/div[1]/div[2]/div/span/div/div/div[3]/div[2]/div[2]/div[5]/div/div[2]/div/a/div[1]",
+                "/html/body/div[1]/div/div[1]/div[2]/div/span/div/div/div[3]/div[2]/div[2]/a/div/div[2]"
             ),
             post_description_locator=(
                 By.XPATH,
@@ -531,14 +629,15 @@ class Idealist(Website):
 
     def _open_form(self):
         super()._open_form()
-        self.driver.find_element(
-            self.form_link_locator_next[0], self.form_link_locator_next[1]
-        ).click()
+        # self.driver.find_element(
+        #     self.form_link_locator_next[0], self.form_link_locator_next[1]
+        # ).click()
         sleep(5)  # wait until the next page can load successfully
         self.driver.find_element(
             self.volunteer_event_locator[0], self.volunteer_event_locator[1]
         ).click()
         sleep(5)  # wait until the next page can load successfully
+
         self.driver.find_element(
             self.applicant_tracker_locator[0], self.applicant_tracker_locator[1]
         ).click()
@@ -546,20 +645,26 @@ class Idealist(Website):
 
     def _enter_form(self):
         super()._enter_form()
+        sleep(2) # for the next element to show
         Select(
-            self.driverr.find_element(
+            self.driver.find_element(
                 self.action_type_locator[0], self.action_type_locator[1]
             )
         ).select_by_value(self.action_type)
+
         self.driver.find_element(
             self.post_description_locator[0], self.post_description_locator[1]
         ).send_keys(self.description)
+
         self.driver.find_element(
             self.next_page_locator[0], self.next_page_locator[1]
         ).click()
         sleep(2)  # wait until the next page can load successfully
 
         # recurrence and time commmitment #
+        if self.event_type == "1": self.recurrence = 0
+        elif self.event_type in ["2", "3"] : self.recurrence = 1
+
         if self.recurrence == Recurrence.ONE_TIME.value:
             button = self.driver.find_element(
                 self.one_time_locator[0], self.one_time_locator[1]
@@ -568,49 +673,13 @@ class Idealist(Website):
                 "arguments[0].click();", button
             )  # radio button clicks
             sleep(2)  # wait until time commitment options show
-            if self.time_commitment == TimeCommitmentOneTime.FEW_HOURS.value:
-                self.driver.find_element(
-                    self.hours_locator[0], self.hours_locator[1]
-                ).click()
-            elif self.time_commitment == TimeCommitmentOneTime.FEW_MINUTES.value:
-                self.driver.find_element(
-                    self.minutes_loctor[0], self.minutes_loctor[1]
-                ).click()
-            elif self.time_commitment == TimeCommitmentOneTime.FEW_DAYS.value:
-                self.driver.find_element(self.days_locator[0], self.days_locator[1]).click()
+
         elif self.recurrence == Recurrence.LONG_TERM.value:
             button = self.driver.find_element(
                 self.long_term_locator[0], self.long_term_locator[1]
             )
             self.driver.execute_script("arguments[0].click();", button)
             sleep(2)  # wait until time commitment options show
-            if self.time_commitment == TimeCommitmentLongTerm.FEW_HOURS_WEEK.value:
-                self.driver.find_element(
-                    self.hours_week_locator[0], self.hours_week_locator[1]
-                ).click()
-            elif self.time_commitment == TimeCommitmentLongTerm.FEW_HOURS_MONTH.value:
-                self.driver.find_element(
-                    self.hours_month_loctor[0], self.hours_month_loctor[1]
-                ).click()
-            elif self.time_commitment == TimeCommitmentLongTerm.PART_TIME.value:
-                self.driver.find_element(
-                    self.parttime_locator[0], self.parttime_locator[1]
-                ).click()
-            elif self.time_commitment == TimeCommitmentLongTerm.FULL_TIME.value:
-                self.driver.find_element(
-                    self.fulltime_locator[0], self.fulltime_locator[1]
-                ).click()
-
-        # schedule #
-        if self.schedule == Schedule.WEEKDAYS:
-            self.driver.find_element(
-                self.weekday_schedule_locator[0], self.weekday_schedule_locator[1]
-            ).click()
-        elif self.schedule == Schedule.WEEKENDS:
-            self.driver.find_element(
-                self.weekend_schedule_locator[0], self.weekend_schedule_locator[1]
-            ).click()
-        sleep(5) # wait until the next page can load successfully
 
         # date #
         self.driver.find_element(self.add_date_locator[0], self.add_date_locator[1]).click()
@@ -631,27 +700,62 @@ class Idealist(Website):
         sleep(2)  # wait until the next page can load sucessfully
 
         # virtual #
-        if self.virtual:
+        if self.virtual == "1": 
+            self.virtual = "REMOTE"
             self.driver.find_element(self.remote_locator[0], self.remote_locator[1]).click()
+        elif self.virtual == "2": 
+            self.virtual = "ONSITE"
+            self.driver.find_element(self.onsite_locator[0], self.onsite_locator[1]).click()
+            sleep(2) # wait for the options to show
+            self.driver.find_element(By.ID, "create-volop-form-address-location-hidden-true").click() # publish only the city
 
-        # where #
-        Select(
+            # address
+            # show addr
+            # self.driver.find_element(self.show_locator[0], self.show_locator[1]).click()
+
+            # city
+            ele = self.driver.find_element(self.city_locator[0], self.city_locator[1])
+            ele.send_keys(self.city + ' ' + self.state)
+            ele.send_keys(Keys.ARROW_DOWN)
+
+            # wait for the first dropdown option to appear and open it
+            first_option = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((self.city_locator[0], self.city_locator[1])))
+            first_option.send_keys(Keys.RETURN)
+
+            sleep(5)
+            self.driver.find_element(By.XPATH, "//body").click()
+            
+            # state
+            # self.driver.find_element(self.state_locator[0], self.state_locator[1]).send_keys(self.state)
+            # # zip
+            # self.driver.find_element(self.zip_locator[0], self.zip_locator[1]).send_keys(self.zip)
+            # # addr
+            # self.driver.find_element(self.addr_locator[0], self.addr_locator[1]).send_keys(self.city, self.state)
+            
+        elif self.virtual == "4": 
+            self.virtual = "REMOTE_TEMPORARY_COVID"
+            self.driver.find_element(self.tempRemote_loactor[0], self.tempRemote_loactor[1]).click()
+        
+        if self.virtual == "1":
+            # where #
+            Select(
+                self.driver.find_element(
+                    self.remote_where_locator[0], self.remote_where_locator[1]
+                )
+            ).select_by_value(
+                "COUNTRY"
+            )  # whthin the U.S.
+
+            # remote but listing related to waht address #
             self.driver.find_element(
-                self.remote_where_locator[0], self.remote_where_locator[1]
-            )
-        ).select_by_value(
-            "COUNTRY"
-        )  # whthin the U.S.
-
-        # remote but listing related to waht address #
-        self.driver.find_element(
-            self.listing_address_locator[0], self.listing_address_locator[1]
-        ).click()
-
+                self.listing_address_locator[0], self.listing_address_locator[1]
+            ).click()
+        
+        # submit
         self.driver.find_element(
             self.next_page_locator_3[0], self.next_page_locator_3[1]
         ).click()
-        sleep(2)  # wait until the next page can load sucessfully
+        sleep(10)  # wait until the next page can load sucessfully
 
         # compliance statement#
         self.driver.find_element(
@@ -661,7 +765,7 @@ class Idealist(Website):
     def _publish(self):
         super()._publish()
         sleep(5) # wait until next page can load successfully
-        self.driver.find_element(By.XPATH, '//*[@id="idealist-modal-container"]').click()
+        self.driver.find_element(By.XPATH, '//*[@id="idealist-modal-container"]').click() # display the output
 
 class TimeCommitmentOneTime(Enum):
     FEW_HOURS = 0
