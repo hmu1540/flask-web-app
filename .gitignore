@@ -1,11 +1,6 @@
 .venv/
 pc_venv/
 .vscode/
-__pycache__
-NTOES.md
 test.py
-website.sqlite
-positions_read.md
-positions.json
-post_auto_experiment.py
-geckodriver.log
+
+__pycache__/

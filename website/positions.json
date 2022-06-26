@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "title": "test position",
+            "event_kind": "volunteer",
+            "event_type": "multiday",
+            "description": "web automation for our volunteer positions",
+            "start_date": "07/11/2022",
+            "start_hour": "12",
+            "start_min": "00",
+            "start_ampm": "am",
+            "end_date": "08/08/2022",
+            "end_hour": "11",
+            "end_min": "59",
+            "end_ampm": "pm",
+            "recurrence": 1,
+            "time_commitment": 0,
+            "schedule": 1,
+            "timezone": "Chicago",
+            "virtual": "1",
+            "virtual_where": "COUNTRY",
+            "action_type": "VOLOP",
+            "city": "Waco",
+            "state": "TX",
+            "zip": "76706"
+        }
+    ]
+}

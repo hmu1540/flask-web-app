@@ -294,56 +294,57 @@ class GivePulse(Website):
         # other cases?
 
         # when #
-        self.driver.find_element(
-            self.post_event_start_date_select_locator[0],
-            self.post_event_start_date_select_locator[1],
-        ).clear()
-        self.driver.find_element(
-            self.post_event_start_date_select_locator[0],
-            self.post_event_start_date_select_locator[1],
-        ).send_keys(self.start_date)
-        Select(
+        if self.event_type == "multiday" or self.event_type == "recurring" or self.event_type == "event":
             self.driver.find_element(
-                self.post_event_start_hour_locator[0],
-                self.post_event_start_hour_locator[1],
-            )
-        ).select_by_value(self.start_hour)
-        Select(
+                self.post_event_start_date_select_locator[0],
+                self.post_event_start_date_select_locator[1],
+            ).clear()
             self.driver.find_element(
-                self.post_event_start_min_locator[0],
-                self.post_event_start_min_locator[1],
-            )
-        ).select_by_value(self.start_min)
-        Select(
-            self.driver.find_element(
-                self.post_event_start_ampm_locator[0],
-                self.post_event_start_ampm_locator[1],
-            )
-        ).select_by_value(self.start_ampm)
+                self.post_event_start_date_select_locator[0],
+                self.post_event_start_date_select_locator[1],
+            ).send_keys(self.start_date)
+            Select(
+                self.driver.find_element(
+                    self.post_event_start_hour_locator[0],
+                    self.post_event_start_hour_locator[1],
+                )
+            ).select_by_value(self.start_hour)
+            Select(
+                self.driver.find_element(
+                    self.post_event_start_min_locator[0],
+                    self.post_event_start_min_locator[1],
+                )
+            ).select_by_value(self.start_min)
+            Select(
+                self.driver.find_element(
+                    self.post_event_start_ampm_locator[0],
+                    self.post_event_start_ampm_locator[1],
+                )
+            ).select_by_value(self.start_ampm)
 
-        self.driver.find_element(
-            self.post_event_end_date_select_locator[0],
-            self.post_event_end_date_select_locator[1],
-        ).clear()
-        self.driver.find_element(
-            self.post_event_end_date_select_locator[0],
-            self.post_event_end_date_select_locator[1],
-        ).send_keys(self.end_date)
-        Select(
             self.driver.find_element(
-                self.post_event_end_hour_locator[0], self.post_event_end_hour_locator[1]
-            )
-        ).select_by_value(self.end_hour)
-        Select(
+                self.post_event_end_date_select_locator[0],
+                self.post_event_end_date_select_locator[1],
+            ).clear()
             self.driver.find_element(
-                self.post_event_end_min_locator[0], self.post_event_end_min_locator[1]
-            )
-        ).select_by_value(self.end_min)
-        Select(
-            self.driver.find_element(
-                self.post_event_end_ampm_locator[0], self.post_event_end_ampm_locator[1]
-            )
-        ).select_by_value(self.end_ampm)
+                self.post_event_end_date_select_locator[0],
+                self.post_event_end_date_select_locator[1],
+            ).send_keys(self.end_date)
+            Select(
+                self.driver.find_element(
+                    self.post_event_end_hour_locator[0], self.post_event_end_hour_locator[1]
+                )
+            ).select_by_value(self.end_hour)
+            Select(
+                self.driver.find_element(
+                    self.post_event_end_min_locator[0], self.post_event_end_min_locator[1]
+                )
+            ).select_by_value(self.end_min)
+            Select(
+                self.driver.find_element(
+                    self.post_event_end_ampm_locator[0], self.post_event_end_ampm_locator[1]
+                )
+            ).select_by_value(self.end_ampm)
 
         # timezone
         Select(
@@ -356,6 +357,7 @@ class GivePulse(Website):
         self.driver.find_element(
             self.participants_locator[0], self.participants_locator[1]
         ).clear()
+        sleep(5)
         self.driver.find_element(
             self.participants_locator[0], self.participants_locator[1]
         ).send_keys(self.participants)
@@ -465,11 +467,11 @@ class VolunteerMatch(Website):
         ).select_by_value("26884010")
 
         # virtural/remore #
-        if self.virtual == "1":
-            self.driver.find_element(self.virtrual_locator[0], self.virtrual_locator[1]).click()
-        elif self.virtual == "2":
+        if self.virtual == "1": # yes
+            self.driver.find_element(self.virtrual_locator[0], self.virtrual_locator[1]).click()        
+        elif self.virtual == "2": # no
             self.driver.find_element(self.oneplace_locator[0], self.oneplace_locator[1]).click()
-
+            
         # where if not virtual #
         if self.virtual == "2":
             # address
@@ -489,8 +491,9 @@ class VolunteerMatch(Website):
             self.driver.find_element(self.zip_locator[0], self.zip_locator[1]).send_keys(self.zip)
 
         # when #
-        self.driver.execute_script(f'$("input#start_date").val("{self.start_date}")')
-        self.driver.execute_script(f'$("input#end_date").val("{self.end_date}")')
+        if self.event_type in ["1", "2", "3"]:
+            self.driver.execute_script(f'$("input#start_date").val("{self.start_date}")')
+            self.driver.execute_script(f'$("input#end_date").val("{self.end_date}")')
 
         # paticipants needed #
         self.driver.find_element(
@@ -662,8 +665,8 @@ class Idealist(Website):
         sleep(2)  # wait until the next page can load successfully
 
         # recurrence and time commmitment #
-        if self.event_type == "1": self.recurrence = 0
-        elif self.event_type in ["2", "3"] : self.recurrence = 1
+        if self.event_type in ["1", "2", "3"]: self.recurrence = 0 # specific dates
+        elif self.event_type in ["4", "5"] : self.recurrence = 1 # ongoing
 
         if self.recurrence == Recurrence.ONE_TIME.value:
             button = self.driver.find_element(
@@ -682,16 +685,17 @@ class Idealist(Website):
             sleep(2)  # wait until time commitment options show
 
         # date #
-        self.driver.find_element(self.add_date_locator[0], self.add_date_locator[1]).click()
-        sleep(3)  # wait until date frame can load completely
-        self.driver.find_element(
-            self.post_event_start_date_select_locator[0],
-            self.post_event_start_date_select_locator[1],
-        ).send_keys(self.start_date)
-        self.driver.find_element(
-            self.post_event_end_date_select_locator[0],
-            self.post_event_end_date_select_locator[1],
-        ).send_keys(self.end_date)
+        if self.recurrence == Recurrence.ONE_TIME.value:
+            self.driver.find_element(self.add_date_locator[0], self.add_date_locator[1]).click()
+            sleep(3)  # wait until date frame can load completely
+            self.driver.find_element(
+                self.post_event_start_date_select_locator[0],
+                self.post_event_start_date_select_locator[1],
+            ).send_keys(self.start_date)
+            self.driver.find_element(
+                self.post_event_end_date_select_locator[0],
+                self.post_event_end_date_select_locator[1],
+            ).send_keys(self.end_date)
 
         # next page #
         self.driver.find_element(
@@ -717,13 +721,12 @@ class Idealist(Website):
             ele = self.driver.find_element(self.city_locator[0], self.city_locator[1])
             ele.send_keys(self.city + ' ' + self.state)
             ele.send_keys(Keys.ARROW_DOWN)
+            sleep(5)
 
             # wait for the first dropdown option to appear and open it
             first_option = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((self.city_locator[0], self.city_locator[1])))
             first_option.send_keys(Keys.RETURN)
-
             sleep(5)
-            self.driver.find_element(By.XPATH, "//body").click()
             
             # state
             # self.driver.find_element(self.state_locator[0], self.state_locator[1]).send_keys(self.state)
