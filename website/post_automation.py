@@ -491,9 +491,14 @@ class VolunteerMatch(Website):
             self.driver.find_element(self.zip_locator[0], self.zip_locator[1]).send_keys(self.zip)
 
         # when #
+        print(self.event_type)
         if self.event_type in ["1", "2", "3"]:
+            self.driver.find_element(By.ID, "date_specific").click()
             self.driver.execute_script(f'$("input#start_date").val("{self.start_date}")')
             self.driver.execute_script(f'$("input#end_date").val("{self.end_date}")')
+        else: 
+            self.driver.find_element(By.ID, "date_ongoing").click()
+            sleep(5)
 
         # paticipants needed #
         self.driver.find_element(
@@ -665,8 +670,8 @@ class Idealist(Website):
         sleep(2)  # wait until the next page can load successfully
 
         # recurrence and time commmitment #
-        if self.event_type in ["1", "2", "3"]: self.recurrence = 0 # specific dates
-        elif self.event_type in ["4", "5"] : self.recurrence = 1 # ongoing
+        if self.event_type == "1": self.recurrence = 0
+        elif self.event_type in ["2", "3", "4", "5"] : self.recurrence = 1
 
         if self.recurrence == Recurrence.ONE_TIME.value:
             button = self.driver.find_element(
@@ -685,7 +690,7 @@ class Idealist(Website):
             sleep(2)  # wait until time commitment options show
 
         # date #
-        if self.recurrence == Recurrence.ONE_TIME.value:
+        if self.event_type in ["1", "2", "3"]:
             self.driver.find_element(self.add_date_locator[0], self.add_date_locator[1]).click()
             sleep(3)  # wait until date frame can load completely
             self.driver.find_element(
