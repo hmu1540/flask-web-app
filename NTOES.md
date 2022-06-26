@@ -120,17 +120,16 @@
     Tip: If an element is a block element, its display type can also be changed with the float property.
 
 17. 填充提交
-    
+
     element.sendKeys("your text");
     element.submit();
 
-     textField.sendKeys("text you type into field" + "\n").
+    textField.sendKeys("text you type into field" + "\n").
 
     elem.send_keys(Keys.ARROW_DOWN)
     elem.send_keys(Keys.RETURN)
 
 18. [Heroku 部署](https://evancalz.medium.com/deploying-your-flask-app-to-heroku-43660a761f1c)
-    
 19. [Heroku deploy](https://medium.com/daily-programming-tips/deploy-a-flask-app-with-a-sqlite-database-on-heroku-22b5402c5c6)
 
     pip freeze > requirements. txt
